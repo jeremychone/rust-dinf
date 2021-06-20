@@ -13,9 +13,7 @@ description = "Simple command line to get directory information"
 repository = "https://github.com/jeremychone/rust-dinf"
 keywords = [
 	"cli",
-	"directory",
-	"command line",
-	"directory size"
+	"directory"
 ]
 categories = ["command-line-interface"]
 license = "MIT"
