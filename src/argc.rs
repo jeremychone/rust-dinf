@@ -1,13 +1,13 @@
-use clap::{crate_version, App, Arg};
+use clap::{crate_version, Arg, Command};
 
-pub fn argc_app() -> App<'static, 'static> {
-	App::new("dinf")
+pub fn argc_app() -> Command {
+	Command::new("rec")
 		.version(crate_version!())
 		.about("Simple directory information")
 		.arg(
-			Arg::with_name("nums")
+			Arg::new("nums")
 				.help("Number of biggest files to display")
-				.short("n")
-				.takes_value(true),
+				.short('n')
+				.num_args(1),
 		)
 }

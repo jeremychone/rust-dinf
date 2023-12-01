@@ -1,7 +1,11 @@
-use thiserror::Error;
+use derive_more::{Display, From};
 
-#[derive(Error, Debug)]
+#[derive(Debug, From, Display)]
 pub enum AppError {
-	#[error("-n must be a number but was {0}")]
+	#[display("-n must be a number but was {}", _0)]
 	InvalidNumberOfFiles(String),
+
+	// -- Externals
+	#[from]
+	Clap(clap::Error),
 }

@@ -43,7 +43,7 @@ struct Options {
 
 impl Options {
 	fn from_argc(argc: ArgMatches) -> Result<Options, AppError> {
-		let nums: usize = match argc.value_of("nums") {
+		let nums: usize = match argc.get_one::<String>("nums") {
 			None => TOP_NUMS,
 			Some(nums) => nums
 				.parse::<usize>()
