@@ -45,7 +45,9 @@ impl Options {
 	fn from_argc(argc: ArgMatches) -> Result<Options, AppError> {
 		let nums: usize = match argc.value_of("nums") {
 			None => TOP_NUMS,
-			Some(nums) => nums.parse::<usize>().or_else(|_| Err(AppError::InvalidNumberOfFiles(nums.to_string())))?,
+			Some(nums) => nums
+				.parse::<usize>()
+				.map_err(|_| AppError::InvalidNumberOfFiles(nums.to_string()))?,
 		};
 
 		Ok(Options { nums })
