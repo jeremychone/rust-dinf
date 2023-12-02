@@ -10,4 +10,11 @@ pub fn argc_app() -> Command {
 				.short('n')
 				.num_args(1),
 		)
+		.arg(Arg::new("glob").help("globs, comma separated").short('g').num_args(1))
+		.arg(
+			Arg::new("no-ext")
+				.action(clap::ArgAction::SetTrue)
+				.long("no-ext")
+				.help("group by extension"),
+		)
 }
