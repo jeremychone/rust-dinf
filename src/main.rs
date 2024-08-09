@@ -1,3 +1,5 @@
+// region:    --- Modules
+
 mod argc;
 mod error;
 
@@ -5,12 +7,13 @@ pub use self::error::{Error, Result};
 
 use argc::argc_app;
 use clap::ArgMatches;
-use clap::{crate_version, Arg, Command};
 use file_size::fit_4;
 use globset::{Glob, GlobSetBuilder};
-use std::collections::{HashMap, HashSet};
+use std::collections::HashMap;
 use std::path::PathBuf;
 use walkdir::WalkDir;
+
+// endregion: --- Modules
 
 const DIR: &str = "./";
 const TOP_NUMS: usize = 5;

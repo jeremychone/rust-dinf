@@ -19,7 +19,8 @@ categories = ["command-line-interface"]
 license = "MIT"
 
 [lints.rust]
-unused = "allow"
+unsafe_code = "forbid"
+# unused = { level = "allow", priority = -1 } # For exploratory dev.
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
