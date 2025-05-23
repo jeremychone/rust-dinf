@@ -15,7 +15,7 @@ use walkdir::WalkDir;
 
 // endregion: --- Modules
 
-const DIR: &str = "./";
+const DEFAULT_DIR: &str = "./";
 const TOP_NUMS: usize = 5;
 
 fn main() {
@@ -43,6 +43,7 @@ struct Entry {
 }
 
 struct Options {
+	path: String,
 	nums: usize,
 	glob: Option<Vec<String>>,
 	no_ext: bool,
@@ -50,6 +51,12 @@ struct Options {
 
 impl Options {
 	fn from_argc(argc: ArgMatches) -> Result<Options> {
+		// -- path
+		let path = argc
+			.get_one::<String>("path")
+			.map(|s| s.to_string())
+			.unwrap_or_else(|| DEFAULT_DIR.to_string());
+
 		// -- nums
 		let nums: usize = match argc.get_one::<String>("nums") {
 			None => TOP_NUMS,
@@ -66,7 +73,7 @@ impl Options {
 		// -- by_ext
 		let no_ext = argc.get_flag("no-ext");
 
-		Ok(Options { nums, glob, no_ext })
+		Ok(Options { path, nums, glob, no_ext })
 	}
 }
 
@@ -90,7 +97,7 @@ fn exec(options: Options) -> Result<()> {
 	let mut by_ext: Option<HashMap<String, u64>> = if !options.no_ext { Some(HashMap::new()) } else { None };
 
 	// get entry iterator.
-	let entries = WalkDir::new(DIR)
+	let entries = WalkDir::new(&options.path)
 		.into_iter()
 		.filter_map(|e| e.ok())
 		// match the ventual glob

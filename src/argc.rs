@@ -5,6 +5,12 @@ pub fn argc_app() -> Command {
 		.version(crate_version!())
 		.about("Simple directory information")
 		.arg(
+			Arg::new("path")
+				.help("Base directory path to analyze")
+				.index(1)
+				.required(false),
+		)
+		.arg(
 			Arg::new("nums")
 				.help("Number of biggest files to display")
 				.short('n')
