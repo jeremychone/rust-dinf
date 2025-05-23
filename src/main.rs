@@ -132,7 +132,7 @@ fn exec(options: Options) -> Result<()> {
 	}
 
 	println!(
-		"== Summary\nNumber of files {}\nTotal size: {}",
+		"####== Summary\nNumber of files {}\nTotal size: {}",
 		total_numbers,
 		fit_4(total_size)
 	);

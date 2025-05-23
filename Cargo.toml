@@ -32,4 +32,4 @@ walkdir = "2"
 file-size = "1"
 globset = "0.4"
 # -- Others
-derive_more = {version = "1.0.0-beta.6", features = ["from", "display"]}
+derive_more = {version = "2", features = ["from", "display"]}
