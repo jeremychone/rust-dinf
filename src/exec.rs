@@ -1,6 +1,6 @@
 use crate::Result;
 use crate::argc::Args;
-use crate::dir_info::process_dir_info;
+use crate::dir_info::{DirInfo, process_dir_info};
 use size::Size;
 
 // region:    --- Constants
@@ -61,12 +61,48 @@ impl Options {
 }
 
 pub fn run(options: Options) -> Result<()> {
-	for (i, path) in options.paths.iter().enumerate() {
-		if i > 0 {
-			println!("\n");
+	if options.summary {
+		let mut dir_infos: Vec<DirInfo> = Vec::new();
+		for path_str in &options.paths {
+			// process_dir_info correctly handles options.summary
+			// to avoid unnecessary computation for top_files and ext_stats.
+			let dir_info = process_dir_info(path_str, &options)?;
+			dir_infos.push(dir_info);
 		}
 
-		exec_single_path(path, &options)?;
+		if !dir_infos.is_empty() {
+			// Determine the maximum path length for alignment.
+			let max_path_len = dir_infos.iter().map(|di| di.path_processed.len()).max().unwrap_or(0);
+
+			// Determine the maximum length of the "N files" string for alignment.
+			let max_files_str_len = dir_infos
+				.iter()
+				.map(|di| format!("{} files", di.total_numbers).len())
+				.max()
+				.unwrap_or(0);
+
+			// Print all summaries aligned.
+			for dir_info in dir_infos {
+				let files_str = format!("{} files", dir_info.total_numbers);
+				println!(
+					"{path:<path_width$}  - {files_str:<files_width$} | total size: {size}",
+					path = dir_info.path_processed,
+					files_str = files_str,
+					size = Size::from_bytes(dir_info.total_size),
+					path_width = max_path_len,
+					files_width = max_files_str_len
+				);
+			}
+		}
+	} else {
+		// Original behavior for detailed output if not in summary mode.
+		for (i, path) in options.paths.iter().enumerate() {
+			if i > 0 {
+				println!("\n"); // Separator for multiple paths in detailed mode.
+			}
+			// exec_single_path will handle the detailed printing for each path.
+			exec_single_path(path, &options)?;
+		}
 	}
 
 	Ok(())
@@ -77,18 +113,11 @@ pub fn run(options: Options) -> Result<()> {
 // region:    --- Private Functions
 
 fn exec_single_path(path_str: &str, options: &Options) -> Result<()> {
+	// When this function is called, options.summary is false.
+	// process_dir_info will populate top_files and ext_stats as needed for detailed view.
 	let dir_info = process_dir_info(path_str, options)?;
 
-	if options.summary {
-		println!(
-			"{:<15}: {} files, {}",
-			dir_info.path_processed,
-			dir_info.total_numbers,
-			Size::from_bytes(dir_info.total_size),
-		);
-		return Ok(());
-	}
-
+	// Detailed printing logic.
 	println!(
 		"==== Directory info on '{}'\n\n{:>15}: {}\n{:>15}: {}",
 		dir_info.path_processed,
@@ -98,6 +127,7 @@ fn exec_single_path(path_str: &str, options: &Options) -> Result<()> {
 		Size::from_bytes(dir_info.total_size),
 	);
 
+	// ext_stats will be Some if options.no_ext is false (given options.summary is false).
 	if let Some(ext_stats_data) = &dir_info.ext_stats {
 		println!("\n== Top {} biggest size by extension", options.nums); // Title uses configured nums
 
@@ -113,6 +143,7 @@ fn exec_single_path(path_str: &str, options: &Options) -> Result<()> {
 		}
 	}
 
+	// top_files will be populated because options.summary is false.
 	if !dir_info.top_files.is_empty() {
 		println!("\n== Top {} biggest files", dir_info.top_files.len()); // Title uses actual count of files found
 		for entry_info in dir_info.top_files.iter() {
