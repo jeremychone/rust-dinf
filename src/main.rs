@@ -7,9 +7,9 @@ pub use self::error::{Error, Result};
 
 use argc::Args;
 use clap::Parser;
-use file_size::fit_4;
 use globset::{Glob, GlobSetBuilder};
 use simple_fs::SPath;
+use size::Size;
 use std::collections::HashMap;
 use walkdir::WalkDir;
 
@@ -91,10 +91,10 @@ fn exec(options: Options) -> Result<()> {
 		if i > 0 {
 			println!("\n");
 		}
-		
+
 		exec_single_path(path, &options)?;
 	}
-	
+
 	Ok(())
 }
 
@@ -116,7 +116,11 @@ fn exec_single_path(path: &str, options: &Options) -> Result<()> {
 		})
 		.transpose()?;
 
-	let mut by_ext: Option<HashMap<String, u64>> = if !options.no_ext && !options.summary { Some(HashMap::new()) } else { None };
+	let mut by_ext: Option<HashMap<String, u64>> = if !options.no_ext && !options.summary {
+		Some(HashMap::new())
+	} else {
+		None
+	};
 
 	// get entry iterator.
 	let entries = WalkDir::new(path)
@@ -161,10 +165,10 @@ fn exec_single_path(path: &str, options: &Options) -> Result<()> {
 
 	if options.summary {
 		println!(
-			"{}: {} files, {}",
+			"{:<15}: {} files, {}",
 			path,
 			total_numbers,
-			fit_4(total_size),
+			Size::from_bytes(total_size),
 		);
 		return Ok(());
 	}
@@ -175,7 +179,7 @@ fn exec_single_path(path: &str, options: &Options) -> Result<()> {
 		"Number of files",
 		total_numbers,
 		"Total size",
-		fit_4(total_size),
+		Size::from_bytes(total_size),
 	);
 
 	let mut others_size = 0;
@@ -186,7 +190,7 @@ fn exec_single_path(path: &str, options: &Options) -> Result<()> {
 
 		for (i, (ext, size)) in by_ext.iter().enumerate() {
 			if i < options.nums {
-				println!("{:<4} - {}", fit_4(*size), ext);
+				println!("{:<10} - {}", Size::from_bytes(*size).to_string(), ext);
 			} else {
 				others_size += size;
 			}
@@ -194,12 +198,12 @@ fn exec_single_path(path: &str, options: &Options) -> Result<()> {
 	}
 
 	if others_size > 0 {
-		println!("{:<4} - (others)", fit_4(others_size));
+		println!("{:<10} - (others)", Size::from_bytes(others_size).to_string());
 	}
 
 	println!("\n== Top {} biggest files", tops.len());
 	for Entry { size, path } in tops.iter() {
-		println!("{:<4} - {}", fit_4(*size), path.as_str());
+		println!("{:<10} - {}", Size::from_bytes(*size).to_string(), path.as_str());
 	}
 
 	println!("\n=====");
