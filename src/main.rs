@@ -43,7 +43,7 @@ struct Entry {
 }
 
 struct Options {
-	path: String,
+	paths: Vec<String>,
 	nums: usize,
 	glob: Option<Vec<String>>,
 	no_ext: bool,
@@ -51,11 +51,11 @@ struct Options {
 
 impl Options {
 	fn from_argc(argc: ArgMatches) -> Result<Options> {
-		// -- path
-		let path = argc
-			.get_one::<String>("path")
-			.map(|s| s.to_string())
-			.unwrap_or_else(|| DEFAULT_DIR.to_string());
+		// -- paths
+		let paths = argc
+			.get_many::<String>("paths")
+			.map(|values| values.map(|s| s.to_string()).collect::<Vec<String>>())
+			.unwrap_or_else(|| vec![DEFAULT_DIR.to_string()]);
 
 		// -- nums
 		let nums: usize = match argc.get_one::<String>("nums") {
@@ -74,7 +74,7 @@ impl Options {
 		let no_ext = argc.get_flag("no-ext");
 
 		Ok(Options {
-			path,
+			paths,
 			nums,
 			glob,
 			no_ext,
@@ -83,6 +83,18 @@ impl Options {
 }
 
 fn exec(options: Options) -> Result<()> {
+	for (i, path) in options.paths.iter().enumerate() {
+		if i > 0 {
+			println!("\n");
+		}
+		
+		exec_single_path(path, &options)?;
+	}
+	
+	Ok(())
+}
+
+fn exec_single_path(path: &str, options: &Options) -> Result<()> {
 	let mut total_size: u64 = 0;
 	let mut total_numbers: u32 = 0;
 	let mut tops: Vec<Entry> = Vec::with_capacity(options.nums + 1);
@@ -90,10 +102,11 @@ fn exec(options: Options) -> Result<()> {
 
 	let glob = options
 		.glob
+		.as_ref()
 		.map(|vs| {
 			let mut builder = GlobSetBuilder::new();
 			for v in vs {
-				builder.add(Glob::new(&v)?);
+				builder.add(Glob::new(v)?);
 			}
 			builder.build()
 		})
@@ -102,7 +115,7 @@ fn exec(options: Options) -> Result<()> {
 	let mut by_ext: Option<HashMap<String, u64>> = if !options.no_ext { Some(HashMap::new()) } else { None };
 
 	// get entry iterator.
-	let entries = WalkDir::new(&options.path)
+	let entries = WalkDir::new(path)
 		.into_iter()
 		.filter_map(|e| e.ok())
 		// match the ventual glob
@@ -115,14 +128,14 @@ fn exec(options: Options) -> Result<()> {
 		});
 
 	for entry in entries {
-		let path = entry.path();
-		if path.is_file() && !entry.path_is_symlink() {
+		let entry_path = entry.path();
+		if entry_path.is_file() && !entry.path_is_symlink() {
 			total_numbers += 1;
 			let size = entry.metadata()?.len();
 			total_size += size;
 
 			if let Some(by_ext) = &mut by_ext {
-				if let Some(ext) = path.extension() {
+				if let Some(ext) = entry_path.extension() {
 					let ext = ext.to_string_lossy().to_string();
 					*by_ext.entry(ext).or_insert(0) += size;
 				}
@@ -144,7 +157,7 @@ fn exec(options: Options) -> Result<()> {
 
 	println!(
 		"==== Directory info on '{}'\n\n{:>15}: {}\n{:>15}: {}",
-		options.path,
+		path,
 		"Number of files",
 		total_numbers,
 		"Total size",

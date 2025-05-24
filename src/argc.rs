@@ -5,9 +5,9 @@ pub fn argc_app() -> Command {
 		.version(crate_version!())
 		.about("Simple directory information")
 		.arg(
-			Arg::new("path")
-				.help("Base directory path to analyze")
-				.index(1)
+			Arg::new("paths")
+				.help("Base directory paths to analyze")
+				.num_args(1..)
 				.required(false),
 		)
 		.arg(
