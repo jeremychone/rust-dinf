@@ -19,6 +19,9 @@ dinf -s
 # will run dinf on two folders and display results back to back
 dinf some/path another/path
 
-# just get the summary of those two directories
+# -s/--summary to just get the summary of those two directories
 dinf -s some/path another/path
+
+# -c/--children to get the direct children (can give path to to get their children)
+dinf -c -s
 ```
