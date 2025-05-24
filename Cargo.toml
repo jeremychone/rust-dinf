@@ -1,7 +1,7 @@
 [package]
 name = "dinf"
 version = "0.1.3-WIP"
-edition = "2021"
+edition = "2024"
 include = [
 	"src/**/*",
 	"Cargo.toml",
