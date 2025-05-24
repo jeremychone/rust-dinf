@@ -143,9 +143,12 @@ fn exec(options: Options) -> Result<()> {
 	}
 
 	println!(
-		"== Summary\nNumber of files {}\nTotal size: {}",
+		"==== Directory info on '{}'\n\n{:>15}: {}\n{:>15}: {}",
+		options.path,
+		"Number of files",
 		total_numbers,
-		fit_4(total_size)
+		"Total size",
+		fit_4(total_size),
 	);
 
 	let mut others_size = 0;
@@ -171,6 +174,8 @@ fn exec(options: Options) -> Result<()> {
 	for Entry { size, path } in tops.iter() {
 		println!("{:<4} - {}", fit_4(*size), path.as_str());
 	}
+
+	println!("\n=====");
 
 	Ok(())
 }
