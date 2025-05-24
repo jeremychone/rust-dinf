@@ -1,8 +1,7 @@
 use crate::Result;
 use crate::argc::Args;
 use crate::dir_info::{DirInfo, process_dir_info};
-use crate::support::format_num;
-use size::Size;
+use crate::support::{format_num, format_size};
 
 // region:    --- Constants
 
@@ -78,7 +77,7 @@ pub fn run(options: Options) -> Result<()> {
 			// Determine the maximum length of the "N files" string for alignment.
 			let max_files_str_len = dir_infos
 				.iter()
-				.map(|di| format!("{} files", di.total_numbers).len())
+				.map(|di| format!("{} files", format_num(di.total_numbers)).len())
 				.max()
 				.unwrap_or(0);
 
@@ -89,7 +88,7 @@ pub fn run(options: Options) -> Result<()> {
 					"{path:<path_width$}  - {files_str:<files_width$} | total size: {size}",
 					path = dir_info.path_processed,
 					files_str = files_str,
-					size = Size::from_bytes(dir_info.total_size),
+					size = format_size(dir_info.total_size),
 					path_width = max_path_len,
 					files_width = max_files_str_len
 				);
@@ -120,12 +119,12 @@ fn exec_single_path(path_str: &str, options: &Options) -> Result<()> {
 
 	// Detailed printing logic.
 	println!(
-		"==== Directory info on '{}'\n\n{:>15}: {}\n{:>15}: {}",
+		"==== Directory info on '{}'\n\n{:>15}: {}\n{:>15}:{}",
 		dir_info.path_processed,
 		"Number of files",
 		format_num(dir_info.total_numbers),
 		"Total size",
-		Size::from_bytes(dir_info.total_size),
+		format_size(dir_info.total_size),
 	);
 
 	// ext_stats will be Some if options.no_ext is false (given options.summary is false).
@@ -133,14 +132,11 @@ fn exec_single_path(path_str: &str, options: &Options) -> Result<()> {
 		println!("\n== Top {} biggest size by extension", options.nums); // Title uses configured nums
 
 		for ext_stat in ext_stats_data.top_by_ext.iter() {
-			println!("{:<10} - {}", Size::from_bytes(ext_stat.size).to_string(), ext_stat.ext);
+			println!("{:<8} - {}", format_size(ext_stat.size), ext_stat.ext);
 		}
 
 		if ext_stats_data.others_size > 0 {
-			println!(
-				"{:<10} - (others)",
-				Size::from_bytes(ext_stats_data.others_size).to_string()
-			);
+			println!("{:<8} - (others)", format_size(ext_stats_data.others_size));
 		}
 	}
 
@@ -148,11 +144,7 @@ fn exec_single_path(path_str: &str, options: &Options) -> Result<()> {
 	if !dir_info.top_files.is_empty() {
 		println!("\n== Top {} biggest files", dir_info.top_files.len()); // Title uses actual count of files found
 		for entry_info in dir_info.top_files.iter() {
-			println!(
-				"{:<10} - {}",
-				Size::from_bytes(entry_info.size).to_string(),
-				entry_info.path.as_str()
-			);
+			println!("{:<8} - {}", format_size(entry_info.size), entry_info.path.as_str());
 		}
 	}
 
