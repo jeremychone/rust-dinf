@@ -2,6 +2,7 @@ use crate::Result;
 use crate::argc::Args;
 use crate::dir_info::{DirInfo, process_dir_info};
 use crate::support::{format_num, format_size};
+use std::fs;
 
 // region:    --- Constants
 
@@ -26,23 +27,45 @@ pub struct Options {
 
 impl Options {
 	pub fn from_args(args: Args) -> Result<Options> {
-		// -- paths
-		let paths = if args.paths.is_empty() {
+		// -- Determine initial paths
+		let initial_paths = if args.paths.is_empty() {
 			vec![DEFAULT_DIR.to_string()]
 		} else {
 			args.paths
 		};
 
+		// -- Expand to children if requested
+		let final_paths = if args.children {
+			let mut children_paths = Vec::new();
+			for path_str in &initial_paths {
+				let read_dir = fs::read_dir(path_str)?;
+				for entry_result in read_dir {
+					let entry = entry_result?;
+					let path = entry.path();
+					if path.is_dir() {
+						let path_s = path
+							.to_str()
+							.ok_or_else(|| crate::Error::PathNotUtf8(format!("{:?}", path)))?
+							.to_string();
+						children_paths.push(path_s);
+					}
+				}
+			}
+			children_paths
+		} else {
+			initial_paths
+		};
+
 		// -- nums
 		let nums: usize = match args.nums {
 			None => TOP_NUMS,
-			Some(nums) => nums,
+			Some(n) => n,
 		};
 
 		// -- glob
 		let glob = args
 			.glob
-			.map(|glob| glob.split(',').map(|s| s.to_string()).collect::<Vec<String>>());
+			.map(|g| g.split(',').map(|s| s.to_string()).collect::<Vec<String>>());
 
 		// -- no_ext
 		let no_ext = args.no_ext;
@@ -51,7 +74,7 @@ impl Options {
 		let summary = args.summary;
 
 		Ok(Options {
-			paths,
+			paths: final_paths,
 			nums,
 			glob,
 			no_ext,
@@ -165,3 +188,4 @@ fn exec_single_path(path_str: &str, options: &Options) -> Result<()> {
 }
 
 // endregion: --- Private Functions
+

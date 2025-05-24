@@ -23,4 +23,9 @@ pub struct Args {
 	/// show only summary (number of files and total size)
 	#[arg(short = 's', long = "summary")]
 	pub summary: bool,
+
+	/// Process direct children of the specified path(s)
+	#[arg(short = 'c', long = "children")]
+	pub children: bool,
 }
+

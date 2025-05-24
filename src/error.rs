@@ -7,7 +7,11 @@ pub enum Error {
 	#[display("-n must be a number but was {}", _0)]
 	InvalidNumberOfFiles(String),
 
+	PathNotUtf8(String),
+
 	// -- Externals
+	#[from]
+	Io(std::io::Error),
 	#[from]
 	Clap(clap::Error),
 	#[from]
@@ -17,3 +21,4 @@ pub enum Error {
 }
 
 impl std::error::Error for Error {}
+
