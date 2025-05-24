@@ -74,21 +74,28 @@ pub fn run(options: Options) -> Result<()> {
 			// Determine the maximum path length for alignment.
 			let max_path_len = dir_infos.iter().map(|di| di.path_processed.len()).max().unwrap_or(0);
 
-			// Determine the maximum length of the "N files" string for alignment.
-			let max_files_str_len = dir_infos
+			// Compute file num strs, and max len
+			let files_num_strs: Vec<String> = dir_infos
 				.iter()
-				.map(|di| format!("{} files", format_num(di.total_numbers)).len())
-				.max()
-				.unwrap_or(0);
+				.map(|di| format!("{} files", format_num(di.total_numbers)))
+				.collect();
+			let max_files_str_len = files_num_strs.iter().map(|s| s.len()).max().unwrap_or(0);
+
+			// Compute file saize strs, and max len
+			let size_strs = dir_infos
+				.iter()
+				.map(|di| format_size(di.total_size, true))
+				.collect::<Vec<String>>();
+			let max_size_width = size_strs.iter().map(|s| s.len()).max().unwrap_or(0);
 
 			// Print all summaries aligned.
-			for dir_info in dir_infos {
-				let files_str = format!("{} files", format_num(dir_info.total_numbers));
+			for ((dir_info, files_str), size_str) in dir_infos.iter().zip(files_num_strs).zip(size_strs) {
 				println!(
-					"{path:<path_width$}  - {files_str:<files_width$} | total size: {size}",
+					"{path:<path_width$}  - {files_str:>files_width$} | total size: {size:>max_size_width$}",
 					path = dir_info.path_processed,
 					files_str = files_str,
-					size = format_size(dir_info.total_size),
+					size = size_str,
+					max_size_width = max_size_width,
 					path_width = max_path_len,
 					files_width = max_files_str_len
 				);
@@ -119,12 +126,12 @@ fn exec_single_path(path_str: &str, options: &Options) -> Result<()> {
 
 	// Detailed printing logic.
 	println!(
-		"==== Directory info on '{}'\n\n{:>15}: {}\n{:>15}:{}",
+		"==== Directory info on '{}'\n\n{:>15}: {}\n{:>15}: {}",
 		dir_info.path_processed,
 		"Number of files",
 		format_num(dir_info.total_numbers),
 		"Total size",
-		format_size(dir_info.total_size),
+		format_size(dir_info.total_size, true),
 	);
 
 	// ext_stats will be Some if options.no_ext is false (given options.summary is false).
@@ -132,11 +139,11 @@ fn exec_single_path(path_str: &str, options: &Options) -> Result<()> {
 		println!("\n== Top {} biggest size by extension", options.nums); // Title uses configured nums
 
 		for ext_stat in ext_stats_data.top_by_ext.iter() {
-			println!("{:<8} - {}", format_size(ext_stat.size), ext_stat.ext);
+			println!("{:<8} - {}", format_size(ext_stat.size, false), ext_stat.ext);
 		}
 
 		if ext_stats_data.others_size > 0 {
-			println!("{:<8} - (others)", format_size(ext_stats_data.others_size));
+			println!("{:<8} - (others)", format_size(ext_stats_data.others_size, false));
 		}
 	}
 
@@ -144,7 +151,11 @@ fn exec_single_path(path_str: &str, options: &Options) -> Result<()> {
 	if !dir_info.top_files.is_empty() {
 		println!("\n== Top {} biggest files", dir_info.top_files.len()); // Title uses actual count of files found
 		for entry_info in dir_info.top_files.iter() {
-			println!("{:<8} - {}", format_size(entry_info.size), entry_info.path.as_str());
+			println!(
+				"{:<8} - {}",
+				format_size(entry_info.size, false),
+				entry_info.path.as_str()
+			);
 		}
 	}
 
