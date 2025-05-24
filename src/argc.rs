@@ -19,4 +19,8 @@ pub struct Args {
 	/// group by extension
 	#[arg(long = "no-ext")]
 	pub no_ext: bool,
+
+	/// show only summary (number of files and total size)
+	#[arg(short = 's', long = "summary")]
+	pub summary: bool,
 }

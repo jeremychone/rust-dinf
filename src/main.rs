@@ -47,6 +47,7 @@ struct Options {
 	nums: usize,
 	glob: Option<Vec<String>>,
 	no_ext: bool,
+	summary: bool,
 }
 
 impl Options {
@@ -72,11 +73,15 @@ impl Options {
 		// -- by_ext
 		let no_ext = args.no_ext;
 
+		// -- summary
+		let summary = args.summary;
+
 		Ok(Options {
 			paths,
 			nums,
 			glob,
 			no_ext,
+			summary,
 		})
 	}
 }
@@ -111,7 +116,7 @@ fn exec_single_path(path: &str, options: &Options) -> Result<()> {
 		})
 		.transpose()?;
 
-	let mut by_ext: Option<HashMap<String, u64>> = if !options.no_ext { Some(HashMap::new()) } else { None };
+	let mut by_ext: Option<HashMap<String, u64>> = if !options.no_ext && !options.summary { Some(HashMap::new()) } else { None };
 
 	// get entry iterator.
 	let entries = WalkDir::new(path)
@@ -140,7 +145,7 @@ fn exec_single_path(path: &str, options: &Options) -> Result<()> {
 				}
 			}
 
-			if min_of_tops < size {
+			if !options.summary && min_of_tops < size {
 				let Ok(spath) = SPath::from_std_path(entry.path()) else {
 					continue;
 				};
@@ -152,6 +157,16 @@ fn exec_single_path(path: &str, options: &Options) -> Result<()> {
 				min_of_tops = tops.last().map(|e| e.size).unwrap_or(0);
 			}
 		}
+	}
+
+	if options.summary {
+		println!(
+			"{}: {} files, {}",
+			path,
+			total_numbers,
+			fit_4(total_size),
+		);
+		return Ok(());
 	}
 
 	println!(
