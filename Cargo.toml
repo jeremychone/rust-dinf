@@ -26,7 +26,7 @@ unsafe_code = "forbid"
 
 [dependencies]
 # -- Cli
-clap =  {version = "4", features = ["cargo"]}
+clap =  {version = "4", features = ["cargo", "derive"]}
 # -- File
 simple-fs = "0.6"
 walkdir = "2"

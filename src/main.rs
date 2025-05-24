@@ -5,8 +5,8 @@ mod error;
 
 pub use self::error::{Error, Result};
 
-use argc::argc_app;
-use clap::ArgMatches;
+use argc::Args;
+use clap::Parser;
 use file_size::fit_4;
 use globset::{Glob, GlobSetBuilder};
 use simple_fs::SPath;
@@ -19,9 +19,9 @@ const DEFAULT_DIR: &str = "./";
 const TOP_NUMS: usize = 5;
 
 fn main() {
-	let argc = argc_app().get_matches();
+	let args = Args::parse();
 
-	let options = match Options::from_argc(argc) {
+	let options = match Options::from_args(args) {
 		Ok(options) => options,
 		Err(ex) => {
 			println!("ERROR parsing input {}", ex);
@@ -50,28 +50,27 @@ struct Options {
 }
 
 impl Options {
-	fn from_argc(argc: ArgMatches) -> Result<Options> {
+	fn from_args(args: Args) -> Result<Options> {
 		// -- paths
-		let paths = argc
-			.get_many::<String>("paths")
-			.map(|values| values.map(|s| s.to_string()).collect::<Vec<String>>())
-			.unwrap_or_else(|| vec![DEFAULT_DIR.to_string()]);
+		let paths = if args.paths.is_empty() {
+			vec![DEFAULT_DIR.to_string()]
+		} else {
+			args.paths
+		};
 
 		// -- nums
-		let nums: usize = match argc.get_one::<String>("nums") {
+		let nums: usize = match args.nums {
 			None => TOP_NUMS,
-			Some(nums) => nums
-				.parse::<usize>()
-				.map_err(|_| Error::InvalidNumberOfFiles(nums.to_string()))?,
+			Some(nums) => nums,
 		};
 
 		// -- glob
-		let glob = argc
-			.get_one::<String>("glob")
+		let glob = args
+			.glob
 			.map(|glob| glob.split(',').map(|s| s.to_string()).collect::<Vec<String>>());
 
 		// -- by_ext
-		let no_ext = argc.get_flag("no-ext");
+		let no_ext = args.no_ext;
 
 		Ok(Options {
 			paths,
