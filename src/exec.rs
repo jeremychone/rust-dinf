@@ -1,6 +1,7 @@
 use crate::Result;
 use crate::argc::Args;
 use crate::dir_info::{DirInfo, process_dir_info};
+use crate::support::format_num;
 use size::Size;
 
 // region:    --- Constants
@@ -83,7 +84,7 @@ pub fn run(options: Options) -> Result<()> {
 
 			// Print all summaries aligned.
 			for dir_info in dir_infos {
-				let files_str = format!("{} files", dir_info.total_numbers);
+				let files_str = format!("{} files", format_num(dir_info.total_numbers));
 				println!(
 					"{path:<path_width$}  - {files_str:<files_width$} | total size: {size}",
 					path = dir_info.path_processed,
@@ -122,7 +123,7 @@ fn exec_single_path(path_str: &str, options: &Options) -> Result<()> {
 		"==== Directory info on '{}'\n\n{:>15}: {}\n{:>15}: {}",
 		dir_info.path_processed,
 		"Number of files",
-		dir_info.total_numbers,
+		format_num(dir_info.total_numbers),
 		"Total size",
 		Size::from_bytes(dir_info.total_size),
 	);

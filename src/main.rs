@@ -4,6 +4,7 @@ mod argc;
 mod dir_info; // Added new module
 mod error;
 mod exec;
+mod support;
 
 pub use error::{Error, Result}; // Re-export for the crate, consistent with Rust10x error best practices
 

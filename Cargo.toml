@@ -30,7 +30,9 @@ clap =  {version = "4", features = ["cargo", "derive"]}
 # -- File
 simple-fs = "0.6"
 walkdir = "2"
-size = "0.5.0"
 globset = "0.4"
+# -- Formatters
+size = "0.5.0"
+num-format = "0.4.4"
 # -- Others
 derive_more = {version = "2", features = ["from", "display"]}
