@@ -1,6 +1,7 @@
 // region:    --- Modules
 
 mod argc;
+mod dir_info; // Added new module
 mod error;
 mod exec;
 
