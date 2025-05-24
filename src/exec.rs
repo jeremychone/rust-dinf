@@ -63,9 +63,7 @@ impl Options {
 		};
 
 		// -- glob
-		let glob = args
-			.glob
-			.map(|g| g.split(',').map(|s| s.to_string()).collect::<Vec<String>>());
+		let glob = args.glob.map(|g| g.split(',').map(|s| s.to_string()).collect::<Vec<String>>());
 
 		// -- no_ext
 		let no_ext = args.no_ext;
@@ -94,6 +92,7 @@ pub fn run(options: Options) -> Result<()> {
 		}
 
 		if !dir_infos.is_empty() {
+			println!();
 			// Determine the maximum path length for alignment.
 			let max_path_len = dir_infos.iter().map(|di| di.path_processed.len()).max().unwrap_or(0);
 
@@ -188,4 +187,3 @@ fn exec_single_path(path_str: &str, options: &Options) -> Result<()> {
 }
 
 // endregion: --- Private Functions
-
