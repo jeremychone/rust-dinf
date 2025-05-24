@@ -1,6 +1,6 @@
 [package]
 name = "dinf"
-version = "0.1.3"
+version = "0.1.4-WIP"
 edition = "2024"
 include = [
 	"src/**/*",
