@@ -9,8 +9,8 @@ use argc::argc_app;
 use clap::ArgMatches;
 use file_size::fit_4;
 use globset::{Glob, GlobSetBuilder};
+use simple_fs::SPath;
 use std::collections::HashMap;
-use std::path::PathBuf;
 use walkdir::WalkDir;
 
 // endregion: --- Modules
@@ -38,7 +38,7 @@ fn main() {
 }
 
 struct Entry {
-	path: PathBuf,
+	path: SPath,
 	size: u64,
 }
 
@@ -73,7 +73,12 @@ impl Options {
 		// -- by_ext
 		let no_ext = argc.get_flag("no-ext");
 
-		Ok(Options { path, nums, glob, no_ext })
+		Ok(Options {
+			path,
+			nums,
+			glob,
+			no_ext,
+		})
 	}
 }
 
@@ -124,10 +129,10 @@ fn exec(options: Options) -> Result<()> {
 			}
 
 			if min_of_tops < size {
-				tops.push(Entry {
-					path: entry.path().to_path_buf(),
-					size,
-				});
+				let Ok(spath) = SPath::from_std_path(entry.path()) else {
+					continue;
+				};
+				tops.push(Entry { path: spath, size });
 				tops.sort_by(|a, b| b.size.cmp(&a.size));
 				if tops.len() > options.nums {
 					tops.pop();
@@ -135,11 +140,10 @@ fn exec(options: Options) -> Result<()> {
 				min_of_tops = tops.last().map(|e| e.size).unwrap_or(0);
 			}
 		}
-		// println!("{}", entry.path().display());
 	}
 
 	println!(
-		"####== Summary\nNumber of files {}\nTotal size: {}",
+		"== Summary\nNumber of files {}\nTotal size: {}",
 		total_numbers,
 		fit_4(total_size)
 	);
@@ -165,7 +169,7 @@ fn exec(options: Options) -> Result<()> {
 
 	println!("\n== Top {} biggest files", tops.len());
 	for Entry { size, path } in tops.iter() {
-		println!("{:<4} - {}", fit_4(*size), path.to_string_lossy());
+		println!("{:<4} - {}", fit_4(*size), path.as_str());
 	}
 
 	Ok(())
