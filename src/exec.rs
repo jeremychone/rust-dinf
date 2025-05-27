@@ -91,6 +91,9 @@ pub fn run(options: Options) -> Result<()> {
 			dir_infos.push(dir_info);
 		}
 
+		// Sort dir_infos by path_processed for consistent summary output
+		dir_infos.sort_by(|a, b| a.path_processed.cmp(&b.path_processed));
+
 		if !dir_infos.is_empty() {
 			println!();
 			// Determine the maximum path length for alignment.
@@ -187,3 +190,4 @@ fn exec_single_path(path_str: &str, options: &Options) -> Result<()> {
 }
 
 // endregion: --- Private Functions
+
